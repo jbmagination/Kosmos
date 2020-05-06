@@ -101,7 +101,7 @@ if __name__ == '__main__':
         version_messages += build_messages
         
         if args.command == common.Command.SDSetup:
-            shutil.move(temp_directory, args.output)
+            common.move(temp_directory, args.output)
         else:
             shutil.make_archive(
                 os.path.splitext(args.output)[0],
