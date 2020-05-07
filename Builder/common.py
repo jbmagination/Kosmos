@@ -38,24 +38,36 @@ class GitService(enum.Enum):
 def generate_temp_path():
     return Path.cwd().joinpath('tmp', str(uuid.uuid4()))
 
-def delete_path(dest):
-    destPath = Path(dest)
-    if destPath.exists():
-        if destPath.is_file():
-            destPath.unlink()
-        else:
-            shutil.rmtree(str(destPath))
+def delete(source):
+    sourcePath = Path(source)
+
+    if not sourcePath.exists():
+        return
+
+    if sourcePath.is_file():
+        sourcePath.unlink()
+        return
+    
+    for fileSourcePath in sourcePath.iterdir():
+        delete(fileSourcePath)
+
+        if fileSourcePath.is_dir():
+            fileSourcePath.rmdir()
+
+    if sourcePath.is_dir():
+        sourcePath.rmdir()
+        return
 
 def copy_module_file(module_name, file_name, destination):
     sourcePath = Path.cwd().joinpath('Modules', module_name, file_name)
-    return shutil.copyfile(str(sourcePath), destination)
+    return shutil.copyfile(sourcePath, destination)
 
 def copy_module_folder(module_name, folder_name, destination):
     sourcePath = Path.cwd().joinpath('Modules', module_name, file_name)
-    return shutil.copytree(str(sourcePath), destination)
+    return shutil.copytree(sourcePath, destination)
 
 def find_file(pattern):
-    return glob.glob(pattern, recursive=False)
+    return glob.glob(str(pattern), recursive=False)
 
 def sed(pattern, replace, file_path):
     lines = []
@@ -72,13 +84,18 @@ def move(source, dest):
     sourcePath = Path(source)
     destPath = Path(dest)
 
+    if not sourcePath.exists():
+        return
+
     if sourcePath.is_file():
         sourcePath.rename(destPath)
         return
+
+    if not destPath.exists():
+        destPath.mkdir(parents=True, exist_ok=True)
     
     for fileSourcePath in sourcePath.iterdir():
         fileDestPath = destPath.joinpath(fileSourcePath.name)
-        print(str(fileDestPath) + ' - ' + str(fileDestPath))
 
         if fileSourcePath.is_dir():
             fileDestPath.mkdir(parents=True, exist_ok=True)

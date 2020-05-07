@@ -23,7 +23,7 @@ import argparse
 import common
 import config
 import modules
-import os
+from pathlib import Path
 import shutil
 import sys
 
@@ -84,7 +84,7 @@ if __name__ == '__main__':
     args = parse_args()
 
     temp_directory = common.generate_temp_path()
-    os.makedirs(temp_directory)
+    common.mkdir(temp_directory)
     kosmos_version = get_kosmos_version(args)
 
     auto_build = False
@@ -95,7 +95,7 @@ if __name__ == '__main__':
 
     build_messages = modules.build(temp_directory, kosmos_version, args.command, auto_build)
 
-    common.delete_path(args.output)
+    common.delete(args.output)
 
     if build_messages is not None:
         version_messages += build_messages
@@ -104,13 +104,11 @@ if __name__ == '__main__':
             common.move(temp_directory, args.output)
         else:
             shutil.make_archive(
-                os.path.splitext(args.output)[0],
+                Path(args.output).stem,
                 'zip',
                 temp_directory)
 
-        common.delete_path(os.path.join(os.getcwd(), 'tmp'))
-
         for message in version_messages:
             print(message)
-    else:
-        common.delete_path(os.path.join(os.getcwd(), 'tmp'))
+
+    common.delete(Path.cwd().joinpath('tmp'))
